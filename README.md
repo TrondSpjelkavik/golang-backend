@@ -19,5 +19,5 @@
 -   Create a new user: http://localhost:8080/api/newuser
 -   Get a single user: http://localhost:8080/api/user/id
 -   Get all users: http://localhost:8080/api/user
--   Update a user: http://localhost:8080/api/user/1
--   Delete a user: http://localhost:8080/api/deleteuser/1
+-   Update a user: http://localhost:8080/api/user/id
+-   Delete a user: http://localhost:8080/api/deleteuser/id
