@@ -12,6 +12,8 @@ import (
 	"github.com/TrondSpjelakvik/golang-backend/models"
 	"github.com/gorilla/mux" // used to get the params from the route
 
+	// "golang.org/x/crypto/bcrypt"
+
 	"github.com/joho/godotenv" // package used to read the .env file
 	_ "github.com/lib/pq"      // postgres golang driver
 )
@@ -54,6 +56,7 @@ func createConnection() *sql.DB {
 
 }
 
+
 // Create a user in DB
 func CreateUser(w http.ResponseWriter, r * http.Request) {
 
@@ -64,7 +67,21 @@ func CreateUser(w http.ResponseWriter, r * http.Request) {
 
 
 	// empty user of the type User
+	
 	var user models.User
+
+	// hash, _ := bcrypt.GenerateFromPassword([]byte(u.Password), 10)
+
+	// user := models.User{
+	// 	ID: u.ID,
+	// 	Name: u.Name,
+	// 	Location: u.Location,
+	// 	Age: u.Age,
+	// 	Password: string(hash),
+	// 	Email: u.Email,
+	// 	Username: u.Username,
+
+	// }
 	
 	// Json request to user
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -211,6 +228,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	}
 
+
 	// Handler functions
 
 	// Insert one user in the DB
@@ -223,17 +241,26 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		// Close the db connection
 		defer db.Close()
 
+		
+
+
+		
 		// Insert sql query
 		// Returning user id will return the id of the inserted user
-		sqlStatement := `INSERT INTO users (name, location, age) VALUES ($1, $2, $3) RETURNING userid`
+		sqlStatement := `INSERT INTO users (name, location, age, password, email, username) VALUES ($1, $2, $3, $4, $5, $6) RETURNING userid`
 
 		// Inserted id will store in this id
-
 		var id int64
+
+		
 
 		// Execute the sql statement
 		// Scan function will save the insert id in the id
-		err := db.QueryRow(sqlStatement, user.Name, user.Location, user.Age).Scan(&id)
+		err := db.QueryRow(sqlStatement, user.Name, user.Location, user.Age, user.Password, user.Email, user.Username).Scan(&id)
+
+		
+	
+
 
 		if err != nil {
 			log.Fatalf("Cant execute the query. %v", err)
@@ -263,7 +290,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		row := db.QueryRow(sqlStatement, id)
 
 		// Unmarshal the row object to user
-		err := row.Scan(&user.ID, &user.Name, &user.Age, &user.Location)
+		err := row.Scan(&user.ID, &user.Name, &user.Age, &user.Location, &user.Email, &user.Username, &user.Password)
 
 		switch err {
 		case sql.ErrNoRows:
@@ -311,7 +338,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 			var user models.User
 
 			// Unmarshal the row object to user
-			err = rows.Scan(&user.ID, &user.Name, &user.Age, &user.Location)
+			err = rows.Scan(&user.ID, &user.Name, &user.Age, &user.Location, &user.Email, &user.Password, &user.Username)
 
 			if err != nil {
 				log.Fatalf("Cant scan the row. %v", err)
@@ -338,9 +365,9 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 		// Create the update sql query
 
-		sqlStatement := `UPDATE users SET name=$2, location=$3, age=$4 WHERE userid=$1`
+		sqlStatement := `UPDATE users SET name=$2, location=$3, age=$4, password=$5, username=$6, email=$7 WHERE userid=$1`
 
-		res, err := db.Exec(sqlStatement, id, user.Name, user.Location, user.Age)
+		res, err := db.Exec(sqlStatement, id, user.Name, user.Location, user.Age, user.Password, user.Username, user.Email)
 
 		if err != nil {
 			log.Fatalf("Cant execute the query. %v", err)
